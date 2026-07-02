@@ -226,12 +226,21 @@ button.secondary-button,
   z-index: 5;
   top: 1rem;
   right: 1rem;
-  min-height: 2.4rem;
-  border: 1px solid rgba(245, 241, 232, 0.22);
-  background: rgba(9, 10, 12, 0.64);
+  min-height: 3.25rem;
+  border: 1px solid rgba(245, 241, 232, 0.34);
+  background: rgba(9, 10, 12, 0.78);
   color: var(--ink);
-  padding-inline: 0.9rem;
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.36);
+  padding-inline: 1.15rem;
+  font-size: 1rem;
+  letter-spacing: 0;
   backdrop-filter: blur(16px);
+}
+
+.view-toggle::after {
+  content: " screenshot mode";
+  color: var(--muted);
+  font-weight: 700;
 }
 
 .visual-stage {
@@ -335,11 +344,20 @@ canvas {
   margin: 0;
 }
 
+.meter-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 3.1rem;
+  gap: 0.65rem;
+  align-items: center;
+}
+
 .meter {
   height: 0.6rem;
   overflow: hidden;
   border-radius: 999px;
   background: rgba(245, 241, 232, 0.12);
+  cursor: default;
+  pointer-events: none;
 }
 
 .meter span {
@@ -347,6 +365,13 @@ canvas {
   height: 100%;
   border-radius: inherit;
   background: linear-gradient(90deg, var(--accent-2), var(--accent-3), var(--accent));
+}
+
+.meter-value {
+  color: var(--ink);
+  font-size: 0.78rem;
+  font-weight: 850;
+  text-align: right;
 }
 
 .section-list {
@@ -470,6 +495,10 @@ body.share-view .view-toggle {
   color: #17181b;
 }
 
+body.share-view .view-toggle::after {
+  content: "";
+}
+
 body.share-view .visual-stage {
   min-height: 24rem;
 }
@@ -569,6 +598,12 @@ body.share-view pre {
   }
 
   .now-reading {
+    left: 1rem;
+    right: 1rem;
+    width: auto;
+  }
+
+  .view-toggle {
     left: 1rem;
     right: 1rem;
     width: auto;
