@@ -22,6 +22,7 @@ Open `index.html` in a browser.
 7. Paste it into your AI companion chat.
 
 Use **Share View** for a cleaner screenshot.
+Use **Download image** to save a shareable PNG of the current atlas.
 
 ## Notes
 
@@ -36,4 +37,3 @@ To publish with GitHub Pages:
 3. In GitHub, go to **Settings > Pages**.
 4. Set the source to deploy from the main branch root.
 5. Share the published Pages URL.
-
