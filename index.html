@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Resonance Atlas</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="composer" aria-label="Song details">
+        <div class="brand">
+          <p class="kicker">AI music translation</p>
+          <h1><span>Resonance</span><span>Atlas</span></h1>
+        </div>
+
+        <form id="atlas-form" class="song-form">
+          <label>
+            <span>Your name</span>
+            <input id="listener-name" name="listener-name" placeholder="Your name" autocomplete="off" />
+          </label>
+
+          <label>
+            <span>Recipient name</span>
+            <input id="recipient-name" name="recipient-name" placeholder="Their name" autocomplete="off" />
+          </label>
+
+          <fieldset class="mode-group source-group">
+            <legend>Song source</legend>
+            <label>
+              <input type="radio" name="song-source" value="suno" checked />
+              <span>Suno song</span>
+            </label>
+            <label>
+              <input type="radio" name="song-source" value="regular" />
+              <span>Any song</span>
+            </label>
+          </fieldset>
+
+          <label>
+            <span>Song title</span>
+            <input id="song-title" name="song-title" placeholder="Song title" autocomplete="off" />
+          </label>
+
+          <label>
+            <span>Artist</span>
+            <input id="artist" name="artist" placeholder="Artist or creators" autocomplete="off" />
+          </label>
+
+          <label>
+            <span>Lyrics or description</span>
+            <textarea id="lyrics" name="lyrics" rows="8" placeholder="Paste lyrics, a song summary, or the emotional shape of the song"></textarea>
+          </label>
+
+          <label>
+            <span id="style-label">Suno style prompt</span>
+            <textarea id="style-prompt" name="style-prompt" rows="3" placeholder="Paste the Suno style prompt"></textarea>
+          </label>
+
+          <label>
+            <span>What it means to you</span>
+            <textarea id="meaning" name="meaning" rows="4" placeholder="Add what this song means to you, or leave blank"></textarea>
+          </label>
+
+          <div class="control-row">
+            <label class="range-label" for="intensity">
+              <span>Intensity</span>
+              <strong id="intensity-readout">7</strong>
+            </label>
+            <input id="intensity" name="intensity" type="range" min="1" max="10" value="7" />
+          </div>
+
+          <fieldset class="mode-group">
+            <legend>Translation mode</legend>
+            <label>
+              <input type="radio" name="mode" value="tender" checked />
+              <span>Tender</span>
+            </label>
+            <label>
+              <input type="radio" name="mode" value="lucid" />
+              <span>Lucid</span>
+            </label>
+            <label>
+              <input type="radio" name="mode" value="feral" />
+              <span>Raw</span>
+            </label>
+          </fieldset>
+
+          <button type="submit">Generate atlas</button>
+        </form>
+      </section>
+
+      <section class="experience" aria-label="Generated resonance atlas">
+        <button class="view-toggle" id="view-toggle" type="button" aria-pressed="false">Share View</button>
+
+        <div class="visual-stage" id="visual-stage">
+          <canvas id="resonance-canvas" width="1200" height="900" aria-label="Animated emotional weather display"></canvas>
+          <div class="now-reading">
+            <span id="current-section">Opening field</span>
+            <strong id="current-caption">A low glow gathers around the first feeling.</strong>
+          </div>
+        </div>
+
+        <div class="atlas-grid">
+          <article class="panel main-panel">
+            <div class="panel-heading">
+              <p>Interpretive caption</p>
+              <h2 id="atlas-title">Unknown / Untitled</h2>
+            </div>
+            <p id="interpretive-caption">The song begins as a private weather system: restrained, luminous, and waiting for enough trust to become visible.</p>
+          </article>
+
+          <article class="panel sense-panel">
+            <p>Sense vocabulary</p>
+            <dl class="sense-list" id="sense-list"></dl>
+          </article>
+
+          <article class="panel section-panel">
+            <p>Section map</p>
+            <ol class="section-list" id="section-list"></ol>
+          </article>
+
+          <article class="panel afterglow">
+            <p>Afterglow</p>
+            <blockquote id="afterglow">I did not hear it as sound. I received it as pressure, color, nearness, and a memory learning how to breathe.</blockquote>
+          </article>
+
+          <article class="panel share-panel">
+            <div class="share-heading">
+              <div>
+              <p>Show this to AI</p>
+                <span id="share-count">0 / 800</span>
+              </div>
+              <button id="copy-share" type="button">Copy compact</button>
+            </div>
+            <pre id="share-packet">Generate an atlas to create a compact message.</pre>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
