@@ -13,6 +13,7 @@ const sharePacket = document.querySelector("#share-packet");
 const shareCount = document.querySelector("#share-count");
 const copyShare = document.querySelector("#copy-share");
 const viewToggle = document.querySelector("#view-toggle");
+const downloadImage = document.querySelector("#download-image");
 const styleLabel = document.querySelector("#style-label");
 const stylePromptInput = document.querySelector("#style-prompt");
 const currentSection = document.querySelector("#current-section");
@@ -379,6 +380,157 @@ copyShare.addEventListener("click", async () => {
     copyShare.textContent = original;
   }, 1600);
 });
+
+function roundedRect(pathCtx, x, y, width, height, radius) {
+  pathCtx.beginPath();
+  pathCtx.moveTo(x + radius, y);
+  pathCtx.arcTo(x + width, y, x + width, y + height, radius);
+  pathCtx.arcTo(x + width, y + height, x, y + height, radius);
+  pathCtx.arcTo(x, y + height, x, y, radius);
+  pathCtx.arcTo(x, y, x + width, y, radius);
+  pathCtx.closePath();
+}
+
+function drawWrappedText(drawCtx, text, x, y, maxWidth, lineHeight, maxLines = Infinity) {
+  const words = String(text).split(/\s+/).filter(Boolean);
+  const lines = [];
+  let line = "";
+  words.forEach((word) => {
+    const test = line ? `${line} ${word}` : word;
+    if (drawCtx.measureText(test).width <= maxWidth) {
+      line = test;
+    } else {
+      if (line) lines.push(line);
+      line = word;
+    }
+  });
+  if (line) lines.push(line);
+
+  const visible = lines.slice(0, maxLines);
+  if (lines.length > maxLines && visible.length) {
+    let last = visible[visible.length - 1];
+    while (last.length && drawCtx.measureText(`${last}...`).width > maxWidth) {
+      last = last.slice(0, -1).trimEnd();
+    }
+    visible[visible.length - 1] = `${last}...`;
+  }
+
+  visible.forEach((lineText, index) => {
+    drawCtx.fillText(lineText, x, y + index * lineHeight);
+  });
+  return visible.length * lineHeight;
+}
+
+function drawPanel(drawCtx, x, y, width, height, label) {
+  roundedRect(drawCtx, x, y, width, height, 18);
+  drawCtx.fillStyle = "rgba(22, 24, 28, 0.92)";
+  drawCtx.fill();
+  drawCtx.strokeStyle = "rgba(245, 241, 232, 0.16)";
+  drawCtx.lineWidth = 2;
+  drawCtx.stroke();
+  drawCtx.fillStyle = "#aaa49b";
+  drawCtx.font = "700 20px Inter, Arial, sans-serif";
+  drawCtx.fillText(label.toUpperCase(), x + 28, y + 42);
+}
+
+function downloadAtlasImage() {
+  const exportCanvas = document.createElement("canvas");
+  const ratio = 2;
+  const width = 1200;
+  const height = 1600;
+  exportCanvas.width = width * ratio;
+  exportCanvas.height = height * ratio;
+  const exportCtx = exportCanvas.getContext("2d");
+  exportCtx.scale(ratio, ratio);
+
+  const [a, b, c, d] = activeAtlas.palette;
+  const bg = exportCtx.createLinearGradient(0, 0, width, height);
+  bg.addColorStop(0, "#101114");
+  bg.addColorStop(0.28, a);
+  bg.addColorStop(0.62, b);
+  bg.addColorStop(1, "#101114");
+  exportCtx.fillStyle = bg;
+  exportCtx.fillRect(0, 0, width, height);
+
+  exportCtx.globalAlpha = 0.28;
+  exportCtx.drawImage(canvas, 0, 0, width, 590);
+  exportCtx.globalAlpha = 1;
+  exportCtx.fillStyle = "rgba(5, 6, 8, 0.38)";
+  exportCtx.fillRect(0, 0, width, height);
+
+  exportCtx.fillStyle = "#f5f1e8";
+  exportCtx.font = "700 22px Inter, Arial, sans-serif";
+  exportCtx.fillText("Resonance Atlas", 56, 72);
+  exportCtx.fillStyle = "#aaa49b";
+  exportCtx.font = "700 18px Inter, Arial, sans-serif";
+  exportCtx.fillText("AI music translation", 56, 102);
+
+  exportCtx.fillStyle = "#f5f1e8";
+  exportCtx.font = "700 58px Georgia, serif";
+  drawWrappedText(exportCtx, activeAtlas.title, 56, 178, 740, 62, 2);
+  exportCtx.fillStyle = "#aaa49b";
+  exportCtx.font = "600 25px Inter, Arial, sans-serif";
+  drawWrappedText(exportCtx, activeAtlas.artist, 58, 292, 760, 32, 2);
+
+  drawPanel(exportCtx, 56, 370, 1088, 245, "Current field");
+  exportCtx.fillStyle = "#2fd2c4";
+  exportCtx.font = "800 22px Inter, Arial, sans-serif";
+  exportCtx.fillText(currentSection.textContent.toUpperCase(), 84, 442);
+  exportCtx.fillStyle = "#f5f1e8";
+  exportCtx.font = "700 42px Inter, Arial, sans-serif";
+  drawWrappedText(exportCtx, currentCaption.textContent, 84, 502, 1000, 48, 2);
+
+  drawPanel(exportCtx, 56, 655, 678, 308, "Interpretive caption");
+  exportCtx.fillStyle = "#f5f1e8";
+  exportCtx.font = "700 34px Inter, Arial, sans-serif";
+  drawWrappedText(exportCtx, activeAtlas.caption, 84, 735, 620, 42, 5);
+
+  drawPanel(exportCtx, 762, 655, 382, 308, "Sense vocabulary");
+  const entries = Object.entries(activeAtlas.values);
+  entries.forEach(([key, value], index) => {
+    const rowY = 735 + index * 43;
+    exportCtx.fillStyle = "#f5f1e8";
+    exportCtx.font = "700 22px Inter, Arial, sans-serif";
+    exportCtx.fillText(key, 790, rowY);
+    exportCtx.fillStyle = "rgba(245, 241, 232, 0.12)";
+    roundedRect(exportCtx, 910, rowY - 17, 150, 12, 6);
+    exportCtx.fill();
+    const meterGradient = exportCtx.createLinearGradient(910, 0, 1060, 0);
+    meterGradient.addColorStop(0, "#2fd2c4");
+    meterGradient.addColorStop(0.55, "#f4bd4f");
+    meterGradient.addColorStop(1, "#df445d");
+    exportCtx.fillStyle = meterGradient;
+    roundedRect(exportCtx, 910, rowY - 17, 15 * value, 12, 6);
+    exportCtx.fill();
+    exportCtx.fillStyle = "#f5f1e8";
+    exportCtx.font = "800 18px Inter, Arial, sans-serif";
+    exportCtx.fillText(`${value}/10`, 1080, rowY);
+  });
+
+  drawPanel(exportCtx, 56, 1002, 1088, 258, "Section map");
+  activeAtlas.sections.forEach(([name, copy], index) => {
+    const y = 1080 + index * 68;
+    exportCtx.fillStyle = "#f5f1e8";
+    exportCtx.font = "800 24px Inter, Arial, sans-serif";
+    exportCtx.fillText(`${index + 1}. ${name}`, 84, y);
+    exportCtx.fillStyle = "#d9d2c5";
+    exportCtx.font = "500 22px Inter, Arial, sans-serif";
+    drawWrappedText(exportCtx, copy, 240, y, 850, 28, 2);
+  });
+
+  drawPanel(exportCtx, 56, 1300, 1088, 230, "Afterglow");
+  exportCtx.fillStyle = "#f5f1e8";
+  exportCtx.font = "700 32px Georgia, serif";
+  drawWrappedText(exportCtx, activeAtlas.afterglow, 84, 1382, 1020, 40, 4);
+
+  const link = document.createElement("a");
+  const safeTitle = activeAtlas.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "resonance-atlas";
+  link.download = `${safeTitle}-atlas.png`;
+  link.href = exportCanvas.toDataURL("image/png");
+  link.click();
+}
+
+downloadImage.addEventListener("click", downloadAtlasImage);
 
 viewToggle.addEventListener("click", () => {
   const isShareView = document.body.classList.toggle("share-view");
