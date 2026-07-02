@@ -261,10 +261,16 @@ function renderAtlas() {
       const term = document.createElement("dt");
       const desc = document.createElement("dd");
       const meter = document.createElement("span");
+      const fill = document.createElement("span");
+      const score = document.createElement("strong");
       term.textContent = key;
-      desc.className = "meter";
-      meter.style.width = `${value * 10}%`;
-      desc.append(meter);
+      desc.className = "meter-wrap";
+      meter.className = "meter";
+      fill.style.width = `${value * 10}%`;
+      score.className = "meter-value";
+      score.textContent = `${value}/10`;
+      meter.append(fill);
+      desc.append(meter, score);
       row.append(term, desc);
       return row;
     }),
