@@ -221,11 +221,18 @@ button.secondary-button,
   min-width: 0;
 }
 
-.view-toggle {
+.export-actions {
   position: absolute;
   z-index: 5;
   top: 1rem;
   right: 1rem;
+  display: flex;
+  gap: 0.7rem;
+  align-items: center;
+}
+
+.view-toggle,
+.download-toggle {
   min-height: 3.25rem;
   border: 1px solid rgba(245, 241, 232, 0.34);
   background: rgba(9, 10, 12, 0.78);
@@ -235,6 +242,11 @@ button.secondary-button,
   font-size: 1rem;
   letter-spacing: 0;
   backdrop-filter: blur(16px);
+}
+
+.download-toggle {
+  background: linear-gradient(135deg, var(--accent-2), var(--accent-3));
+  color: #101114;
 }
 
 .view-toggle::after {
@@ -603,9 +615,15 @@ body.share-view pre {
     width: auto;
   }
 
-  .view-toggle {
+  .export-actions {
     left: 1rem;
     right: 1rem;
-    width: auto;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .view-toggle,
+  .download-toggle {
+    width: 100%;
   }
 }
