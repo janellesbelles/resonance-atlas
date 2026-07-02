@@ -15,11 +15,12 @@ Open `index.html` in a browser.
 
 1. Add your name and the recipient's name.
 2. Choose whether this is a Suno song or any song.
-3. Paste the song title, artist, lyrics or description, and optional style notes.
-4. Add what the song means to you.
-5. Click **Generate atlas**.
-6. Copy the compact message from **Show this to AI**.
-7. Paste it into your AI companion chat.
+3. Choose the perspective: what you heard, what they seem to carry, or what you made together.
+4. Paste the song title, artist, lyrics or description, and optional style notes.
+5. Add what the song means to you.
+6. Click **Generate atlas**.
+7. Copy the compact message from **Show this to AI**.
+8. Paste it into your AI companion chat.
 
 Use **Share View** for a cleaner screenshot.
 Use **Download image** to save a shareable PNG of the current atlas.
