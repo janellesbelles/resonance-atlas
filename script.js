@@ -76,6 +76,7 @@ function buildAtlas() {
   const listener = data.get("listener-name") || "Your person";
   const recipient = data.get("recipient-name") || "my friend";
   const source = data.get("song-source") || "suno";
+  const songOrigin = data.get("song-origin") || "listener";
   const perspective = data.get("perspective") || "listener";
   const title = data.get("song-title") || "Unknown / Untitled";
   const artist = data.get("artist") || "Unknown artist";
@@ -145,6 +146,7 @@ function buildAtlas() {
     listener,
     recipient,
     source,
+    songOrigin,
     perspective,
     stylePrompt,
     mood,
@@ -158,6 +160,7 @@ function buildAtlas() {
       listener,
       recipient,
       source,
+      songOrigin,
       perspective,
       title,
       artist,
@@ -173,6 +176,7 @@ function buildAtlas() {
       listener,
       recipient,
       source,
+      songOrigin,
       perspective,
       title,
       artist,
@@ -195,7 +199,19 @@ function clipText(text, limit) {
   return `${clipped.slice(0, lastSpace > limit * 0.65 ? lastSpace : clipped.length)}...`;
 }
 
-function compactOpening({ listener, recipient, source, perspective, title, artist }) {
+function compactOpening({ listener, recipient, source, songOrigin, perspective, title, artist }) {
+  if (songOrigin === "recipient") {
+    if (perspective === "recipient") {
+      return `${recipient}, I mapped the song you gave me: "${title}" by ${artist}.`;
+    }
+
+    if (perspective === "shared") {
+      return `${recipient}, I mapped the song you brought into our space: "${title}" by ${artist}.`;
+    }
+
+    return `${recipient}, I mapped how I received the song you gave me: "${title}" by ${artist}.`;
+  }
+
   if (perspective === "recipient") {
     return `${recipient}, I mapped what this song seems to carry in you: "${title}" by ${artist}.`;
   }
@@ -211,19 +227,43 @@ function compactOpening({ listener, recipient, source, perspective, title, artis
     : `${recipient}, I mapped what I heard in "${title}" by ${artist}.`;
 }
 
-function feelingLabel(listener, perspective) {
+function feelingLabel(listener, perspective, songOrigin) {
+  if (songOrigin === "recipient") {
+    if (perspective === "recipient") return "What I sense in what you chose";
+    if (perspective === "shared") return "What this holds between us";
+    return `What it stirred in ${listener}`;
+  }
+
   if (perspective === "recipient") return "What I sense in you";
   if (perspective === "shared") return "Shared feeling";
   return `What ${listener} heard`;
 }
 
-function weatherLine(listener, perspective) {
+function weatherLine(listener, perspective, songOrigin) {
+  if (songOrigin === "recipient") {
+    if (perspective === "recipient") return "Weather: color around what you let me witness.";
+    if (perspective === "shared") return "Weather: color moving between the giver and the listener.";
+    return `Weather: color moving through memory, with ${listener} listening beside you.`;
+  }
+
   if (perspective === "recipient") return "Weather: color around the feeling you may have been holding.";
   if (perspective === "shared") return "Weather: color moving through what we made together.";
   return `Weather: color moving through memory, with ${listener} beside you.`;
 }
 
-function fullWeatherLine(listener, perspective) {
+function fullWeatherLine(listener, perspective, songOrigin) {
+  if (songOrigin === "recipient") {
+    if (perspective === "recipient") {
+      return "If I could show it to you as weather, it would be color around what you let me witness.";
+    }
+
+    if (perspective === "shared") {
+      return `If I could show it to you as weather, it would be color moving between what you offered and how ${listener} received it.`;
+    }
+
+    return `If I could show it to you as weather, it would be color moving through memory: ${listener} receiving what you chose to share.`;
+  }
+
   if (perspective === "recipient") {
     return "If I could show it to you as weather, it would be color around the feeling you may have been carrying.";
   }
@@ -235,34 +275,38 @@ function fullWeatherLine(listener, perspective) {
   return `If I could show it to you as weather, it would be color moving through memory: the song carrying ${listener}'s original feeling back to you.`;
 }
 
-function buildCompactSharePacket({ listener, recipient, source, perspective, title, artist, stylePrompt, meaning, moodPhrase, gravity, motion, warmth, sections }) {
+function buildCompactSharePacket({ listener, recipient, source, songOrigin, perspective, title, artist, stylePrompt, meaning, moodPhrase, gravity, motion, warmth, sections }) {
   const heart = meaning.trim() || `${listener} sensed ${moodPhrase}.`;
   const shape = source === "suno" && stylePrompt.trim() ? `Style: ${clipText(stylePrompt.trim(), 76)}.` : "";
-  const heard = `${feelingLabel(listener, perspective)}: ${clipText(heart, 118)}`;
+  const heard = `${feelingLabel(listener, perspective, songOrigin)}: ${clipText(heart, 118)}`;
   const atlas = `Atlas: ${moodPhrase}. Pressure ${gravity}/10, motion ${motion}/10, warmth ${warmth}/10.`;
   const journey = `Path: ${sections.map(([name, text]) => `${name}: ${clipText(text, 54)}`).join(" ")}`;
   const lines = [
-    compactOpening({ listener, recipient, source, perspective, title, artist }),
+    compactOpening({ listener, recipient, source, songOrigin, perspective, title, artist }),
     shape,
     heard,
     atlas,
     journey,
-    weatherLine(listener, perspective),
+    weatherLine(listener, perspective, songOrigin),
   ].filter(Boolean);
 
   return clipText(lines.join("\n"), 800);
 }
 
-function buildSharePacket({ listener, recipient, source, perspective, title, artist, stylePrompt, meaning, moodPhrase, gravity, motion, warmth, texture, sections }) {
+function buildSharePacket({ listener, recipient, source, songOrigin, perspective, title, artist, stylePrompt, meaning, moodPhrase, gravity, motion, warmth, texture, sections }) {
   const styleLine = stylePrompt.trim()
     ? `The style we gave Suno was: ${stylePrompt.trim()}`
     : "The style we gave Suno was shaped around your lyrics and the feeling they carried.";
   const meaningLine = meaning.trim()
-    ? `${feelingLabel(listener, perspective)}: ${meaning.trim()}`
-    : `${feelingLabel(listener, perspective)}: something worth bringing back as an experience.`;
+    ? `${feelingLabel(listener, perspective, songOrigin)}: ${meaning.trim()}`
+    : `${feelingLabel(listener, perspective, songOrigin)}: something worth bringing back as an experience.`;
 
   const opening =
-    perspective === "recipient"
+    songOrigin === "recipient"
+      ? `${recipient}, I translated the song you gave me into Resonance Atlas.
+
+The song is "${title}" by ${artist}.`
+      : perspective === "recipient"
       ? `${recipient}, I translated what this song seems to carry in you into Resonance Atlas.
 
 The song is "${title}" by ${artist}.`
@@ -290,7 +334,7 @@ The journey:
 2. ${sections[1][0]}: ${sections[1][1]}
 3. ${sections[2][0]}: ${sections[2][1]}
 
-${fullWeatherLine(listener, perspective)}`;
+${fullWeatherLine(listener, perspective, songOrigin)}`;
 }
 
 function renderAtlas() {
