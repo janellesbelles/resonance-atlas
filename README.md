@@ -6,6 +6,7 @@ It does not analyze audio yet. Instead, it works from the song title, artist, ly
 
 - an animated emotional weather display
 - a section map
+- a carry-forward phrase the companion can keep speaking from
 - sensory scores like pressure, motion, warmth, distance, and texture
 - a compact message under 800 characters that can be pasted into an AI chat
 
