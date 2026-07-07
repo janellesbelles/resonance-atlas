@@ -412,6 +412,15 @@ canvas {
   border-color: rgba(244, 189, 79, 0.32);
 }
 
+.carry-panel {
+  grid-column: 1 / -1;
+  border-color: rgba(223, 68, 93, 0.34);
+}
+
+.carry-panel blockquote {
+  font-size: clamp(1.4rem, 2.4vw, 2.45rem);
+}
+
 .share-panel {
   grid-column: 1 / -1;
   border-color: rgba(47, 210, 196, 0.3);
@@ -571,6 +580,10 @@ body.share-view .section-list span {
 }
 
 body.share-view .afterglow {
+  grid-column: 1 / -1;
+}
+
+body.share-view .carry-panel {
   grid-column: 1 / -1;
 }
 
