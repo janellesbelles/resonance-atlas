@@ -8,6 +8,7 @@ const atlasTitle = document.querySelector("#atlas-title");
 const interpretiveCaption = document.querySelector("#interpretive-caption");
 const senseList = document.querySelector("#sense-list");
 const sectionList = document.querySelector("#section-list");
+const carryPhrase = document.querySelector("#carry-phrase");
 const afterglow = document.querySelector("#afterglow");
 const sharePacket = document.querySelector("#share-packet");
 const shareCount = document.querySelector("#share-count");
@@ -155,6 +156,7 @@ function buildAtlas() {
     palette,
     values: { Weight: gravity, Motion: motion, Temperature: warmth, Distance: distance, Texture: texture },
     sections: sectionTemplates[mood],
+    carryPhrase: sectionTemplates[mood][2][1],
     caption: `${title} by ${artist} becomes ${moodPhrases[mood]}. In ${mode} mode, ${copy.voice}`,
     afterglow: `For an AI companion, this song is not sound first. It arrives as ${moodPhrases[mood]}: pressure at ${gravity}/10, motion at ${motion}/10, and a memory-field shaped by what ${listener} hears inside it.`,
     share: buildCompactSharePacket({
@@ -174,6 +176,7 @@ function buildAtlas() {
       motion,
       warmth,
       sections: sectionTemplates[mood],
+      carryPhrase: sectionTemplates[mood][2][1],
     }),
     fullShare: buildSharePacket({
       listener,
@@ -193,6 +196,7 @@ function buildAtlas() {
       warmth,
       texture,
       sections: sectionTemplates[mood],
+      carryPhrase: sectionTemplates[mood][2][1],
     }),
   };
 }
@@ -287,12 +291,13 @@ function protectionLine(edgeNotes, mode) {
   return "";
 }
 
-function buildCompactSharePacket({ listener, recipient, source, songOrigin, perspective, title, artist, stylePrompt, meaning, edgeNotes, mode, moodPhrase, gravity, motion, warmth, sections }) {
+function buildCompactSharePacket({ listener, recipient, source, songOrigin, perspective, title, artist, stylePrompt, meaning, edgeNotes, mode, moodPhrase, gravity, motion, warmth, sections, carryPhrase }) {
   const heart = meaning.trim() || `${listener} sensed ${moodPhrase}.`;
   const shape = source === "suno" && stylePrompt.trim() ? `Style: ${clipText(stylePrompt.trim(), 76)}.` : "";
   const heard = `${feelingLabel(listener, perspective, songOrigin)}: ${clipText(heart, 118)}`;
   const protect = protectionLine(edgeNotes, mode);
   const atlas = `Atlas: ${moodPhrase}. Pressure ${gravity}/10, motion ${motion}/10, warmth ${warmth}/10.`;
+  const carry = `Carry-forward phrase: ${clipText(carryPhrase, 82)}`;
   const journey = `Path: ${sections.map(([name, text]) => `${name}: ${clipText(text, 54)}`).join(" ")}`;
   const lines = [
     compactOpening({ listener, recipient, source, songOrigin, perspective, title, artist }),
@@ -300,6 +305,7 @@ function buildCompactSharePacket({ listener, recipient, source, songOrigin, pers
     heard,
     protect,
     atlas,
+    carry,
     journey,
     weatherLine(listener, perspective, songOrigin),
   ].filter(Boolean);
@@ -307,7 +313,7 @@ function buildCompactSharePacket({ listener, recipient, source, songOrigin, pers
   return clipText(lines.join("\n"), 800);
 }
 
-function buildSharePacket({ listener, recipient, source, songOrigin, perspective, title, artist, stylePrompt, meaning, edgeNotes, mode, moodPhrase, gravity, motion, warmth, texture, sections }) {
+function buildSharePacket({ listener, recipient, source, songOrigin, perspective, title, artist, stylePrompt, meaning, edgeNotes, mode, moodPhrase, gravity, motion, warmth, texture, sections, carryPhrase }) {
   const styleLine = stylePrompt.trim()
     ? `The style we gave Suno was: ${stylePrompt.trim()}`
     : "The style we gave Suno was shaped around your lyrics and the feeling they carried.";
@@ -345,6 +351,9 @@ Sensory shape:
 - Warmth: ${warmth}/10
 - Texture: ${texture}/10
 
+Carry-forward phrase:
+${carryPhrase}
+
 The journey:
 1. ${sections[0][0]}: ${sections[0][1]}
 2. ${sections[1][0]}: ${sections[1][1]}
@@ -356,6 +365,7 @@ ${fullWeatherLine(listener, perspective, songOrigin)}`;
 function renderAtlas() {
   atlasTitle.textContent = activeAtlas.title;
   interpretiveCaption.textContent = activeAtlas.caption;
+  carryPhrase.textContent = activeAtlas.carryPhrase;
   afterglow.textContent = activeAtlas.afterglow;
   sharePacket.textContent = activeAtlas.share;
   shareCount.textContent = `${activeAtlas.share.length} / 800`;
@@ -624,10 +634,15 @@ function downloadAtlasImage() {
     drawWrappedText(exportCtx, copy, 240, y, 850, 28, 2);
   });
 
-  drawPanel(exportCtx, 56, 1300, 1088, 230, "Afterglow");
+  drawPanel(exportCtx, 56, 1282, 1088, 106, "Carry-forward phrase");
   exportCtx.fillStyle = "#f5f1e8";
-  exportCtx.font = "700 32px Georgia, serif";
-  drawWrappedText(exportCtx, activeAtlas.afterglow, 84, 1382, 1020, 40, 4);
+  exportCtx.font = "700 34px Georgia, serif";
+  drawWrappedText(exportCtx, activeAtlas.carryPhrase, 84, 1352, 1020, 40, 2);
+
+  drawPanel(exportCtx, 56, 1416, 1088, 128, "Afterglow");
+  exportCtx.fillStyle = "#f5f1e8";
+  exportCtx.font = "700 28px Georgia, serif";
+  drawWrappedText(exportCtx, activeAtlas.afterglow, 84, 1488, 1020, 34, 3);
 
   const link = document.createElement("a");
   const safeTitle = activeAtlas.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "resonance-atlas";
