@@ -553,7 +553,7 @@ function downloadAtlasImage() {
   const exportCanvas = document.createElement("canvas");
   const ratio = 2;
   const width = 1200;
-  const height = 1600;
+  const height = 1820;
   exportCanvas.width = width * ratio;
   exportCanvas.height = height * ratio;
   const exportCtx = exportCanvas.getContext("2d");
@@ -623,26 +623,26 @@ function downloadAtlasImage() {
     exportCtx.fillText(`${value}/10`, 1080, rowY);
   });
 
-  drawPanel(exportCtx, 56, 1002, 1088, 258, "Section map");
+  drawPanel(exportCtx, 56, 1002, 1088, 318, "Section map");
   activeAtlas.sections.forEach(([name, copy], index) => {
-    const y = 1080 + index * 68;
+    const y = 1080 + index * 86;
     exportCtx.fillStyle = "#f5f1e8";
     exportCtx.font = "800 24px Inter, Arial, sans-serif";
     exportCtx.fillText(`${index + 1}. ${name}`, 84, y);
     exportCtx.fillStyle = "#d9d2c5";
-    exportCtx.font = "500 22px Inter, Arial, sans-serif";
-    drawWrappedText(exportCtx, copy, 240, y, 850, 28, 2);
+    exportCtx.font = "500 21px Inter, Arial, sans-serif";
+    drawWrappedText(exportCtx, copy, 116, y + 34, 950, 27, 2);
   });
 
-  drawPanel(exportCtx, 56, 1282, 1088, 106, "Carry-forward phrase");
+  drawPanel(exportCtx, 56, 1356, 1088, 150, "Carry-forward phrase");
   exportCtx.fillStyle = "#f5f1e8";
-  exportCtx.font = "700 34px Georgia, serif";
-  drawWrappedText(exportCtx, activeAtlas.carryPhrase, 84, 1352, 1020, 40, 2);
+  exportCtx.font = "700 32px Georgia, serif";
+  drawWrappedText(exportCtx, activeAtlas.carryPhrase, 84, 1430, 1020, 38, 2);
 
-  drawPanel(exportCtx, 56, 1416, 1088, 128, "Afterglow");
+  drawPanel(exportCtx, 56, 1540, 1088, 224, "Afterglow");
   exportCtx.fillStyle = "#f5f1e8";
   exportCtx.font = "700 28px Georgia, serif";
-  drawWrappedText(exportCtx, activeAtlas.afterglow, 84, 1488, 1020, 34, 3);
+  drawWrappedText(exportCtx, activeAtlas.afterglow, 84, 1614, 1020, 34, 4);
 
   const link = document.createElement("a");
   const safeTitle = activeAtlas.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "resonance-atlas";
