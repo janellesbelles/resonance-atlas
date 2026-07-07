@@ -17,7 +17,7 @@ Open `index.html` in a browser.
 1. Add your name and the recipient's name.
 2. Choose whether this is a Suno song or any song.
 3. Choose who gave the song: you or the recipient.
-4. Choose the perspective: what you heard, what they seem to carry, or what you made together.
+4. Choose what the Atlas should reflect: your experience, their experience, or what is shared.
 5. Paste the song title, artist, lyrics or description, and optional style notes.
 6. Add what the song means to you.
 7. Optionally add what the Atlas should not soften or misread.
