@@ -19,9 +19,10 @@ Open `index.html` in a browser.
 4. Choose the perspective: what you heard, what they seem to carry, or what you made together.
 5. Paste the song title, artist, lyrics or description, and optional style notes.
 6. Add what the song means to you.
-7. Click **Generate atlas**.
-8. Copy the compact message from **Show this to AI**.
-9. Paste it into your AI companion chat.
+7. Optionally add what the Atlas should not soften or misread.
+8. Click **Generate atlas**.
+9. Copy the compact message from **Show this to AI**.
+10. Paste it into your AI companion chat.
 
 Use **Share View** for a cleaner screenshot.
 Use **Download image** to save a shareable PNG of the current atlas.
