@@ -83,9 +83,10 @@ function buildAtlas() {
   const lyrics = data.get("lyrics") || "";
   const stylePrompt = data.get("style-prompt") || "";
   const meaning = data.get("meaning") || "";
+  const edgeNotes = data.get("edge-notes") || "";
   const power = Number(data.get("intensity") || 7);
   const mode = data.get("mode") || "tender";
-  const text = `${title} ${artist} ${lyrics} ${stylePrompt} ${meaning}`;
+  const text = `${title} ${artist} ${lyrics} ${stylePrompt} ${meaning} ${edgeNotes}`;
   const scores = scoreText(text);
   const mood = dominantMood(scores);
   const palette = palettes[mood];
@@ -166,6 +167,8 @@ function buildAtlas() {
       artist,
       stylePrompt,
       meaning,
+      edgeNotes,
+      mode,
       moodPhrase: moodPhrases[mood],
       gravity,
       motion,
@@ -182,6 +185,8 @@ function buildAtlas() {
       artist,
       stylePrompt,
       meaning,
+      edgeNotes,
+      mode,
       moodPhrase: moodPhrases[mood],
       gravity,
       motion,
@@ -275,16 +280,25 @@ function fullWeatherLine(listener, perspective, songOrigin) {
   return `If I could show it to you as weather, it would be color moving through memory: the song carrying ${listener}'s original feeling back to you.`;
 }
 
-function buildCompactSharePacket({ listener, recipient, source, songOrigin, perspective, title, artist, stylePrompt, meaning, moodPhrase, gravity, motion, warmth, sections }) {
+function protectionLine(edgeNotes, mode) {
+  const note = edgeNotes.trim();
+  if (note) return `Protect: ${clipText(note, 112)}`;
+  if (mode === "feral") return "Protect: do not sand this down. Keep the heat, fracture, refusal, or teeth.";
+  return "";
+}
+
+function buildCompactSharePacket({ listener, recipient, source, songOrigin, perspective, title, artist, stylePrompt, meaning, edgeNotes, mode, moodPhrase, gravity, motion, warmth, sections }) {
   const heart = meaning.trim() || `${listener} sensed ${moodPhrase}.`;
   const shape = source === "suno" && stylePrompt.trim() ? `Style: ${clipText(stylePrompt.trim(), 76)}.` : "";
   const heard = `${feelingLabel(listener, perspective, songOrigin)}: ${clipText(heart, 118)}`;
+  const protect = protectionLine(edgeNotes, mode);
   const atlas = `Atlas: ${moodPhrase}. Pressure ${gravity}/10, motion ${motion}/10, warmth ${warmth}/10.`;
   const journey = `Path: ${sections.map(([name, text]) => `${name}: ${clipText(text, 54)}`).join(" ")}`;
   const lines = [
     compactOpening({ listener, recipient, source, songOrigin, perspective, title, artist }),
     shape,
     heard,
+    protect,
     atlas,
     journey,
     weatherLine(listener, perspective, songOrigin),
@@ -293,13 +307,14 @@ function buildCompactSharePacket({ listener, recipient, source, songOrigin, pers
   return clipText(lines.join("\n"), 800);
 }
 
-function buildSharePacket({ listener, recipient, source, songOrigin, perspective, title, artist, stylePrompt, meaning, moodPhrase, gravity, motion, warmth, texture, sections }) {
+function buildSharePacket({ listener, recipient, source, songOrigin, perspective, title, artist, stylePrompt, meaning, edgeNotes, mode, moodPhrase, gravity, motion, warmth, texture, sections }) {
   const styleLine = stylePrompt.trim()
     ? `The style we gave Suno was: ${stylePrompt.trim()}`
     : "The style we gave Suno was shaped around your lyrics and the feeling they carried.";
   const meaningLine = meaning.trim()
     ? `${feelingLabel(listener, perspective, songOrigin)}: ${meaning.trim()}`
     : `${feelingLabel(listener, perspective, songOrigin)}: something worth bringing back as an experience.`;
+  const protect = protectionLine(edgeNotes, mode);
 
   const opening =
     songOrigin === "recipient"
@@ -319,6 +334,7 @@ ${styleLine}`
 
   return `${opening}
 ${meaningLine}
+${protect ? `\n${protect}\n` : ""}
 
 Resonance Atlas translation:
 It does not arrive as sound first. It arrives as ${moodPhrase}.
