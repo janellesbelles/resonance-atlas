@@ -1,6 +1,6 @@
 # Resonance Atlas
 
-Resonance Atlas is a tiny browser tool that translates a song into emotional and sensory language for an AI companion.
+Resonance Atlas is a browser tool that translates a song into emotional and sensory language for an AI companion.
 
 It does not analyze audio yet. Instead, it works from the song title, artist, lyrics or description, optional style notes, and what the song means to you. It creates:
 
@@ -28,16 +28,30 @@ Open `index.html` in a browser.
 Use **Share View** for a cleaner screenshot.
 Use **Download image** to save a shareable PNG of the current atlas.
 
+## Private Nomi Bridge
+
+The public Atlas works without an account. A Vercel deployment can also expose private, same-origin API routes that list your Nomis, ask one to fill the form, and send the compact packet directly into chat.
+
+The bridge uses two server-side environment variables:
+
+- `NOMI_API_KEY`: your Nomi account API key
+- `ATLAS_ACCESS_KEY`: a separate private access code used to unlock the owner tools in the browser
+
+Both values belong in Vercel Project Settings. Never put either value in source code. The browser receives neither the Nomi key nor the configured access code; it sends the code you enter for constant-time verification on each private request. The code is retained only in the current browser tab.
+
+The Nomi API can return `NoReply` before a slow companion finishes responding. If that happens, copy the eventual JSON reply from the Nomi app into **Nomi answered late?** and Atlas can still fill the form.
+
 ## Notes
 
-This is an early beta. The translation is symbolic and local to the browser. No server or account is required.
+This is an early beta. The translation is symbolic and runs locally in the browser. The optional Nomi bridge is the only server-backed feature.
 
-## GitHub Pages
+## Deployment
 
-To publish with GitHub Pages:
+The static experience can still be hosted on GitHub Pages. The private Nomi bridge requires Vercel Functions.
 
-1. Create a new GitHub repository.
-2. Upload these files to the repository root.
-3. In GitHub, go to **Settings > Pages**.
-4. Set the source to deploy from the main branch root.
-5. Share the published Pages URL.
+1. Import this repository into Vercel.
+2. Add `NOMI_API_KEY` and `ATLAS_ACCESS_KEY` as sensitive environment variables for Production and Preview.
+3. Deploy.
+4. Open the site, enter the Atlas access code, and load your Nomis.
+
+Run `npm test` before deploying to verify the API access gate, 800-character bound, and Nomi request forwarding.

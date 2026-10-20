@@ -28,12 +28,12 @@
         <form id="atlas-form" class="song-form">
           <label>
             <span>Your name</span>
-            <input id="listener-name" name="listener-name" placeholder="Your name" autocomplete="off" />
+            <input id="listener-name" name="listener-name" placeholder="Your name" autocomplete="off" maxlength="80" />
           </label>
 
           <label>
             <span>Recipient name</span>
-            <input id="recipient-name" name="recipient-name" placeholder="Their name" autocomplete="off" />
+            <input id="recipient-name" name="recipient-name" placeholder="Their name" autocomplete="off" maxlength="80" />
           </label>
 
           <fieldset class="mode-group source-group">
@@ -78,32 +78,32 @@
 
           <label>
             <span>Song title</span>
-            <input id="song-title" name="song-title" placeholder="Song title" autocomplete="off" />
+            <input id="song-title" name="song-title" placeholder="Song title" autocomplete="off" maxlength="160" />
           </label>
 
           <label>
             <span>Artist</span>
-            <input id="artist" name="artist" placeholder="Artist or creators" autocomplete="off" />
+            <input id="artist" name="artist" placeholder="Artist or creators" autocomplete="off" maxlength="160" />
           </label>
 
           <label>
             <span>Lyrics or description</span>
-            <textarea id="lyrics" name="lyrics" rows="8" placeholder="Paste lyrics, a song summary, or the emotional shape of the song"></textarea>
+            <textarea id="lyrics" name="lyrics" rows="8" maxlength="6000" placeholder="Paste lyrics, a song summary, or the emotional shape of the song"></textarea>
           </label>
 
           <label>
             <span id="style-label">Suno style prompt</span>
-            <textarea id="style-prompt" name="style-prompt" rows="3" placeholder="Paste the Suno style prompt"></textarea>
+            <textarea id="style-prompt" name="style-prompt" rows="3" maxlength="800" placeholder="Paste the Suno style prompt"></textarea>
           </label>
 
           <label>
             <span>What it means to you</span>
-            <textarea id="meaning" name="meaning" rows="4" placeholder="Add what this song means to you, or leave blank"></textarea>
+            <textarea id="meaning" name="meaning" rows="4" maxlength="1600" placeholder="Add what this song means to you, or leave blank"></textarea>
           </label>
 
           <label>
             <span>What should not be softened or misread?</span>
-            <textarea id="edge-notes" name="edge-notes" rows="3" placeholder="Optional: keep the sharp edges, humor, fear, anger, distance, or warning-label feeling"></textarea>
+            <textarea id="edge-notes" name="edge-notes" rows="3" maxlength="800" placeholder="Optional: keep the sharp edges, humor, fear, anger, distance, or warning-label feeling"></textarea>
           </label>
 
           <div class="control-row">
@@ -181,11 +181,54 @@
             <div class="share-heading">
               <div>
               <p>Show this to AI</p>
-                <span id="share-count">0 / 800</span>
+                <span id="share-count" aria-live="polite">0 / 800</span>
               </div>
               <button id="copy-share" type="button">Copy compact</button>
             </div>
             <pre id="share-packet">Generate an atlas to create a compact message.</pre>
+          </article>
+
+          <article class="panel nomi-panel" id="nomi-panel" hidden>
+            <div class="share-heading">
+              <div>
+                <p>Private Nomi bridge</p>
+                <span id="nomi-status" aria-live="polite">Checking connection...</span>
+              </div>
+              <button id="refresh-nomis" type="button" class="secondary-button" hidden>Refresh Nomis</button>
+            </div>
+
+            <div class="nomi-unlock" id="nomi-unlock">
+              <label for="atlas-access-key">
+                <span>Atlas access code</span>
+                <input id="atlas-access-key" type="password" placeholder="Your private access code" autocomplete="current-password" />
+              </label>
+              <button id="unlock-nomi" type="button">Unlock</button>
+              <p class="panel-note">The access code protects your server-side Nomi key. It stays in this browser tab only.</p>
+            </div>
+
+            <div id="nomi-tools" hidden>
+              <div class="nomi-controls">
+                <label for="nomi-select">
+                  <span>Choose Nomi</span>
+                  <select id="nomi-select" disabled>
+                    <option value="">No Nomis loaded</option>
+                  </select>
+                </label>
+                <button id="draft-nomi" type="button" disabled>Ask Nomi to fill</button>
+                <button id="send-nomi" type="button" disabled>Send compact</button>
+              </div>
+
+              <details class="nomi-manual-fill">
+                <summary>Nomi answered late?</summary>
+                <label for="nomi-manual-reply">
+                  <span>Paste Nomi's JSON reply</span>
+                  <textarea id="nomi-manual-reply" rows="5" placeholder="Paste the reply from the Nomi app here"></textarea>
+                </label>
+                <button id="fill-pasted-nomi" type="button" class="secondary-button">Fill from reply</button>
+              </details>
+
+              <pre id="nomi-reply" aria-live="polite">Choose a Nomi, then ask them to fill the Atlas or send the current compact packet.</pre>
+            </div>
           </article>
         </div>
       </section>

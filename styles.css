@@ -35,8 +35,13 @@ body {
 
 button,
 input,
-textarea {
+textarea,
+select {
   font: inherit;
+}
+
+[hidden] {
+  display: none !important;
 }
 
 .app-shell {
@@ -120,7 +125,9 @@ label span,
 
 input[type="text"],
 input:not([type]),
-textarea {
+input[type="password"],
+textarea,
+select {
   width: 100%;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -137,7 +144,8 @@ textarea {
 }
 
 input:focus,
-textarea:focus {
+textarea:focus,
+select:focus {
   border-color: rgba(47, 210, 196, 0.7);
   box-shadow: 0 0 0 3px rgba(47, 210, 196, 0.14);
 }
@@ -197,6 +205,11 @@ input[type="range"] {
   color: #17181b;
 }
 
+.mode-group input:focus-visible + span {
+  outline: 3px solid rgba(47, 210, 196, 0.72);
+  outline-offset: 2px;
+}
+
 button {
   min-height: 3rem;
   cursor: pointer;
@@ -205,6 +218,17 @@ button {
   background: linear-gradient(135deg, var(--accent), var(--accent-3));
   color: #17120f;
   font-weight: 850;
+}
+
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid rgba(47, 210, 196, 0.72);
+  outline-offset: 3px;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
 }
 
 button.secondary-button,
@@ -428,6 +452,77 @@ canvas {
   border-color: rgba(47, 210, 196, 0.3);
 }
 
+.nomi-panel {
+  grid-column: 1 / -1;
+  border-color: rgba(244, 189, 79, 0.34);
+}
+
+.nomi-unlock {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.8rem;
+  align-items: end;
+}
+
+.nomi-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 0.8rem;
+  align-items: end;
+  margin-bottom: 0.9rem;
+}
+
+.nomi-controls button,
+.nomi-unlock button {
+  min-width: 10rem;
+}
+
+select {
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 1rem) calc(50% - 2px),
+    calc(100% - 0.7rem) calc(50% - 2px);
+  background-repeat: no-repeat;
+  background-size: 0.35rem 0.35rem;
+  padding-right: 2.4rem;
+}
+
+select option {
+  background: #17191d;
+  color: var(--ink);
+}
+
+.panel-note {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.nomi-manual-fill {
+  margin-bottom: 0.9rem;
+  border-block: 1px solid var(--line);
+  padding-block: 0.8rem;
+}
+
+.nomi-manual-fill summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.nomi-manual-fill[open] summary {
+  margin-bottom: 0.8rem;
+}
+
+.nomi-manual-fill label {
+  margin-bottom: 0.7rem;
+}
+
 .share-heading {
   display: flex;
   align-items: center;
@@ -640,5 +735,26 @@ body.share-view pre {
   .view-toggle,
   .download-toggle {
     width: 100%;
+  }
+
+  .nomi-unlock,
+  .nomi-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .nomi-controls button,
+  .nomi-unlock button {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }

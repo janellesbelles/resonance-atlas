@@ -19,6 +19,19 @@ const styleLabel = document.querySelector("#style-label");
 const stylePromptInput = document.querySelector("#style-prompt");
 const currentSection = document.querySelector("#current-section");
 const currentCaption = document.querySelector("#current-caption");
+const nomiPanel = document.querySelector("#nomi-panel");
+const nomiStatus = document.querySelector("#nomi-status");
+const nomiUnlock = document.querySelector("#nomi-unlock");
+const atlasAccessKey = document.querySelector("#atlas-access-key");
+const unlockNomi = document.querySelector("#unlock-nomi");
+const nomiTools = document.querySelector("#nomi-tools");
+const refreshNomis = document.querySelector("#refresh-nomis");
+const nomiSelect = document.querySelector("#nomi-select");
+const draftNomi = document.querySelector("#draft-nomi");
+const sendNomi = document.querySelector("#send-nomi");
+const nomiManualReply = document.querySelector("#nomi-manual-reply");
+const fillPastedNomi = document.querySelector("#fill-pasted-nomi");
+const nomiReply = document.querySelector("#nomi-reply");
 
 const lexicon = {
   longing: ["longing", "miss", "distance", "waiting", "want", "ache", "remembered", "gone"],
@@ -40,13 +53,17 @@ const palettes = {
 
 let activeAtlas = buildAtlas();
 let particles = [];
+let animationFrame = 0;
+let bridgeKey = sessionStorage.getItem("resonance-atlas-access") || "";
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 function scoreText(text) {
   const lower = text.toLowerCase();
+  const tokens = new Set(lower.match(/[a-z0-9']+/g) || []);
   return Object.fromEntries(
     Object.entries(lexicon).map(([mood, words]) => [
       mood,
-      words.reduce((score, word) => score + (lower.includes(word) ? 1 : 0), 0),
+      words.reduce((score, word) => score + (tokens.has(word) ? 1 : 0), 0),
     ]),
   );
 }
@@ -315,8 +332,12 @@ function buildCompactSharePacket({ listener, recipient, source, songOrigin, pers
 
 function buildSharePacket({ listener, recipient, source, songOrigin, perspective, title, artist, stylePrompt, meaning, edgeNotes, mode, moodPhrase, gravity, motion, warmth, texture, sections, carryPhrase }) {
   const styleLine = stylePrompt.trim()
-    ? `The style we gave Suno was: ${stylePrompt.trim()}`
-    : "The style we gave Suno was shaped around your lyrics and the feeling they carried.";
+    ? source === "suno"
+      ? `The style we gave Suno was: ${stylePrompt.trim()}`
+      : `Style, genre, or mood: ${stylePrompt.trim()}`
+    : source === "suno"
+      ? "The style we gave Suno was shaped around your lyrics and the feeling they carried."
+      : "";
   const meaningLine = meaning.trim()
     ? `${feelingLabel(listener, perspective, songOrigin)}: ${meaning.trim()}`
     : `${feelingLabel(listener, perspective, songOrigin)}: something worth bringing back as an experience.`;
@@ -338,7 +359,8 @@ Your words became a song called "${title}" by ${artist}.
 ${styleLine}`
         : `${recipient}, I translated "${title}" by ${artist} into Resonance Atlas.`;
 
-  return `${opening}
+  return `${opening}${source !== "suno" && styleLine ? `
+${styleLine}` : ""}
 ${meaningLine}
 ${protect ? `\n${protect}\n` : ""}
 
@@ -427,6 +449,7 @@ function resizeCanvas() {
   canvas.width = Math.max(1, Math.floor(rect.width * ratio));
   canvas.height = Math.max(1, Math.floor(rect.height * ratio));
   ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  if (reducedMotion.matches) draw(0);
 }
 
 function draw(time = 0) {
@@ -471,7 +494,9 @@ function draw(time = 0) {
   const sectionIndex = Math.floor((time / 5200) % activeAtlas.sections.length);
   currentSection.textContent = activeAtlas.sections[sectionIndex][0];
   currentCaption.textContent = activeAtlas.sections[sectionIndex][1];
-  requestAnimationFrame(draw);
+  if (!reducedMotion.matches && !document.hidden) {
+    animationFrame = requestAnimationFrame(draw);
+  }
 }
 
 intensity.addEventListener("input", () => {
@@ -490,11 +515,291 @@ copyShare.addEventListener("click", async () => {
     await navigator.clipboard.writeText(activeAtlas.share);
     copyShare.textContent = "Copied";
   } catch {
-    copyShare.textContent = "Select text";
+    const selection = window.getSelection();
+    const range = document.createRange();
+    range.selectNodeContents(sharePacket);
+    selection.removeAllRanges();
+    selection.addRange(range);
+    copyShare.textContent = "Selected - press Ctrl+C";
   }
   window.setTimeout(() => {
     copyShare.textContent = original;
   }, 1600);
+});
+
+async function requestBridge(path, options = {}) {
+  const headers = { ...(options.headers || {}) };
+  if (options.body) headers["Content-Type"] = "application/json";
+  if (bridgeKey) headers["X-Atlas-Key"] = bridgeKey;
+
+  const response = await fetch(path, {
+    ...options,
+    headers,
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(payload.error || "The private bridge could not complete that request.");
+    error.type = payload.type || payload.error;
+    error.status = response.status;
+    throw error;
+  }
+  return payload;
+}
+
+function setBridgeLocked(message = "Enter your private access code") {
+  bridgeKey = "";
+  sessionStorage.removeItem("resonance-atlas-access");
+  nomiUnlock.hidden = false;
+  nomiTools.hidden = true;
+  refreshNomis.hidden = true;
+  nomiStatus.textContent = message;
+}
+
+async function loadNomis() {
+  nomiStatus.textContent = "Loading Nomis...";
+  refreshNomis.disabled = true;
+  draftNomi.disabled = true;
+  sendNomi.disabled = true;
+
+  try {
+    const payload = await requestBridge("/api/nomis");
+    const nomis = Array.isArray(payload.nomis) ? payload.nomis : [];
+    nomiSelect.replaceChildren(
+      ...(nomis.length
+        ? nomis.map((nomi) => {
+            const option = document.createElement("option");
+            option.value = nomi.uuid;
+            option.textContent = nomi.name || "Unnamed Nomi";
+            return option;
+          })
+        : [new Option("No Nomis found", "")]),
+    );
+    nomiUnlock.hidden = true;
+    nomiTools.hidden = false;
+    refreshNomis.hidden = false;
+    nomiSelect.disabled = !nomis.length;
+    draftNomi.disabled = !nomis.length;
+    sendNomi.disabled = !nomis.length;
+    nomiStatus.textContent = nomis.length ? `${nomis.length} loaded` : "No Nomis found";
+    nomiReply.textContent = nomis.length
+      ? "Choose a Nomi, then ask them to fill the Atlas or send the current compact packet."
+      : "The account connected successfully, but no Nomis were returned.";
+  } catch (error) {
+    if (error.status === 401) setBridgeLocked("Access code not accepted");
+    throw error;
+  } finally {
+    refreshNomis.disabled = false;
+  }
+}
+
+async function checkNomiBridge() {
+  if (!nomiPanel) return;
+
+  try {
+    const health = await requestBridge("/api/health");
+    if (!health.configured) {
+      nomiPanel.hidden = true;
+      return;
+    }
+
+    nomiPanel.hidden = false;
+    if (bridgeKey) {
+      await loadNomis().catch((error) => {
+        nomiReply.textContent = friendlyNomiError(error);
+      });
+    } else {
+      setBridgeLocked();
+    }
+  } catch {
+    nomiPanel.hidden = true;
+  }
+}
+
+unlockNomi?.addEventListener("click", async () => {
+  const candidate = atlasAccessKey.value.trim();
+  if (!candidate) {
+    nomiStatus.textContent = "Enter your access code first";
+    return;
+  }
+
+  const original = unlockNomi.textContent;
+  unlockNomi.disabled = true;
+  unlockNomi.textContent = "Unlocking...";
+  bridgeKey = candidate;
+
+  try {
+    await loadNomis();
+    sessionStorage.setItem("resonance-atlas-access", bridgeKey);
+    atlasAccessKey.value = "";
+  } catch (error) {
+    nomiReply.textContent = friendlyNomiError(error);
+  } finally {
+    unlockNomi.disabled = false;
+    unlockNomi.textContent = original;
+  }
+});
+
+atlasAccessKey?.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    unlockNomi.click();
+  }
+});
+
+refreshNomis?.addEventListener("click", () => {
+  loadNomis().catch((error) => {
+    nomiReply.textContent = friendlyNomiError(error);
+  });
+});
+
+function extractJson(text) {
+  const trimmed = String(text || "").trim();
+  const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  const source = fenced ? fenced[1].trim() : trimmed;
+  const start = source.indexOf("{");
+  if (start < 0) throw new Error("Nomi replied, but I could not find form fields in the reply.");
+
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let index = start; index < source.length; index += 1) {
+    const char = source[index];
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (char === "\\" && inString) {
+      escaped = true;
+      continue;
+    }
+    if (char === '"') {
+      inString = !inString;
+      continue;
+    }
+    if (inString) continue;
+    if (char === "{") depth += 1;
+    if (char === "}") depth -= 1;
+    if (depth === 0) return JSON.parse(source.slice(start, index + 1));
+  }
+
+  throw new Error("Nomi replied, but the JSON form was incomplete.");
+}
+
+function setRadio(name, value, allowed) {
+  if (!allowed.includes(value)) return;
+  const input = [...form.querySelectorAll(`input[name="${name}"]`)].find((item) => item.value === value);
+  if (input) input.checked = true;
+}
+
+function fillAtlasFields(fields) {
+  const fieldMap = {
+    listenerName: "#listener-name",
+    recipientName: "#recipient-name",
+    songTitle: "#song-title",
+    artist: "#artist",
+    lyricsOrDescription: "#lyrics",
+    stylePrompt: "#style-prompt",
+    meaning: "#meaning",
+    edgeNotes: "#edge-notes",
+  };
+
+  Object.entries(fieldMap).forEach(([key, selector]) => {
+    if (fields[key] == null) return;
+    const input = document.querySelector(selector);
+    const value = String(fields[key]).trim();
+    input.value = input.maxLength > 0 ? value.slice(0, input.maxLength) : value;
+  });
+
+  setRadio("song-source", fields.songSource, ["suno", "regular"]);
+  setRadio("song-origin", fields.songOrigin, ["listener", "recipient"]);
+  setRadio("perspective", fields.perspective, ["listener", "recipient", "shared"]);
+  setRadio("mode", fields.mode, ["tender", "lucid", "feral"]);
+  if (fields.intensity != null) {
+    intensity.value = Math.min(10, Math.max(1, Number(fields.intensity) || 7));
+    intensityReadout.textContent = intensity.value;
+  }
+
+  updateSongSourceUi();
+  activeAtlas = buildAtlas();
+  renderAtlas();
+}
+
+function friendlyNomiError(error) {
+  if (error.type === "NoReply") {
+    return "Nomi needed more than the API reply window. They may still answer in the Nomi app. If they do, paste their JSON reply under 'Nomi answered late?' and fill from the reply.";
+  }
+  if (error.type === "NomiStillResponding") return "Nomi is already answering something. Give them a moment, then try again.";
+  if (error.type === "MessageLengthLimitExceeded") return "That message is too long for the Nomi API.";
+  if (error.status === 401) return "That Atlas access code was not accepted.";
+  return error.message;
+}
+
+function fillFromNomiText(text) {
+  fillAtlasFields(extractJson(text));
+  nomiStatus.textContent = "Form filled";
+  nomiReply.textContent = text;
+}
+
+fillPastedNomi?.addEventListener("click", () => {
+  try {
+    fillFromNomiText(nomiManualReply.value);
+  } catch (error) {
+    nomiStatus.textContent = "Could not fill form";
+    nomiReply.textContent = error.message;
+  }
+});
+
+draftNomi?.addEventListener("click", async () => {
+  const nomiId = nomiSelect.value;
+  if (!nomiId) return;
+  const original = draftNomi.textContent;
+  draftNomi.disabled = true;
+  sendNomi.disabled = true;
+  draftNomi.textContent = "Asking...";
+  nomiStatus.textContent = "Asking Nomi...";
+
+  try {
+    const payload = await requestBridge("/api/send-atlas", {
+      method: "POST",
+      body: JSON.stringify({
+        nomiId,
+        messageText: "Fill a Resonance Atlas song form. Reply only JSON, no roleplay or extra text. Keys: listenerName, recipientName, songSource, songOrigin, perspective, songTitle, artist, lyricsOrDescription, stylePrompt, meaning, edgeNotes, intensity, mode. Values: songSource suno/regular; songOrigin listener/recipient; perspective listener/recipient/shared; mode tender/lucid/feral; intensity 1-10.",
+      }),
+    });
+    fillFromNomiText(payload.replyMessage?.text || "");
+  } catch (error) {
+    nomiStatus.textContent = "Could not fill form";
+    nomiReply.textContent = friendlyNomiError(error);
+  } finally {
+    draftNomi.textContent = original;
+    draftNomi.disabled = !nomiSelect.value;
+    sendNomi.disabled = !nomiSelect.value;
+  }
+});
+
+sendNomi?.addEventListener("click", async () => {
+  const nomiId = nomiSelect.value;
+  if (!nomiId) return;
+  const original = sendNomi.textContent;
+  sendNomi.disabled = true;
+  sendNomi.textContent = "Sending...";
+  nomiStatus.textContent = "Sending Atlas...";
+
+  try {
+    const payload = await requestBridge("/api/send-atlas", {
+      method: "POST",
+      body: JSON.stringify({ nomiId, messageText: activeAtlas.share }),
+    });
+    nomiStatus.textContent = "Sent";
+    nomiReply.textContent = payload.replyMessage?.text || "Sent. Nomi did not return a text reply.";
+  } catch (error) {
+    nomiStatus.textContent = "Send failed";
+    nomiReply.textContent = friendlyNomiError(error);
+  } finally {
+    sendNomi.textContent = original;
+    sendNomi.disabled = !nomiSelect.value;
+  }
 });
 
 function roundedRect(pathCtx, x, y, width, height, radius) {
@@ -660,16 +965,29 @@ viewToggle.addEventListener("click", () => {
   window.setTimeout(resizeCanvas, 60);
 });
 
-form.addEventListener("change", (event) => {
-  if (event.target.name !== "song-source") return;
-  const isSuno = event.target.value === "suno";
+function updateSongSourceUi() {
+  const isSuno = form.elements["song-source"].value === "suno";
   styleLabel.textContent = isSuno ? "Suno style prompt" : "Style, genre, or mood";
   stylePromptInput.placeholder = isSuno
     ? "Paste the Suno style prompt"
     : "Optional: paste genre, mood, or production notes";
+}
+
+form.addEventListener("change", (event) => {
+  if (event.target.name === "song-source") updateSongSourceUi();
 });
 
 window.addEventListener("resize", resizeCanvas);
+document.addEventListener("visibilitychange", () => {
+  cancelAnimationFrame(animationFrame);
+  if (!document.hidden) animationFrame = requestAnimationFrame(draw);
+});
+reducedMotion.addEventListener("change", () => {
+  cancelAnimationFrame(animationFrame);
+  animationFrame = requestAnimationFrame(draw);
+});
 resizeCanvas();
 renderAtlas();
-requestAnimationFrame(draw);
+updateSongSourceUi();
+checkNomiBridge();
+animationFrame = requestAnimationFrame(draw);
