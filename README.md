@@ -28,30 +28,30 @@ Open `index.html` in a browser.
 Use **Share View** for a cleaner screenshot.
 Use **Download image** to save a shareable PNG of the current atlas.
 
-## Private Nomi Bridge
+## Optional Nomi Connection
 
-The public Atlas works without an account. A Vercel deployment can also expose private, same-origin API routes that list your Nomis, ask one to fill the form, and send the compact packet directly into chat.
+The public Atlas works without an account. On the Vercel version, each visitor can optionally connect their own Nomi account to list their Nomis, ask one to fill the form, or send the compact packet directly into chat.
 
-The bridge uses two server-side environment variables:
+Atlas uses a bring-your-own-key connection:
 
-- `NOMI_API_KEY`: your Nomi account API key
-- `ATLAS_ACCESS_KEY`: a separate private access code used to unlock the owner tools in the browser
-
-Both values belong in Vercel Project Settings. Never put either value in source code. The browser receives neither the Nomi key nor the configured access code; it sends the code you enter for constant-time verification on each private request. The code is retained only in the current browser tab.
+- The visitor enters their own Nomi account API key.
+- The key is retained only in that browser tab using `sessionStorage`.
+- It is forwarded to Nomi only for that visitor's requests and is never stored by Atlas.
+- Disconnecting or closing the tab forgets the key.
+- No account key or shared access password is configured in Vercel.
 
 The Nomi API can return `NoReply` before a slow companion finishes responding. If that happens, copy the eventual JSON reply from the Nomi app into **Nomi answered late?** and Atlas can still fill the form.
 
 ## Notes
 
-This is an early beta. The translation is symbolic and runs locally in the browser. The optional Nomi bridge is the only server-backed feature.
+This is an early beta. The translation is symbolic and runs locally in the browser. The optional per-visitor Nomi connection is the only server-backed feature.
 
 ## Deployment
 
-The static experience can still be hosted on GitHub Pages. The private Nomi bridge requires Vercel Functions.
+The static experience can still be hosted on GitHub Pages. The optional Nomi connection requires Vercel Functions.
 
 1. Import this repository into Vercel.
-2. Add `NOMI_API_KEY` and `ATLAS_ACCESS_KEY` as sensitive environment variables for Production and Preview.
-3. Deploy.
-4. Open the site, enter the Atlas access code, and load your Nomis.
+2. Deploy. No environment variables are required.
+3. Open the site, enter your own Nomi account key, and load your Nomis.
 
-Run `npm test` before deploying to verify the API access gate, 800-character bound, and Nomi request forwarding.
+Run `npm test` before deploying to verify the per-visitor key gate, 800-character bound, and Nomi request forwarding.

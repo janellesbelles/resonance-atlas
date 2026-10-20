@@ -1,11 +1,11 @@
-import { assertMethod, callNomi, handleError, readBody, requireAccess, sendJson } from "../lib/nomi.js";
+import { assertMethod, callNomi, getNomiKey, handleError, readBody, sendJson } from "../lib/nomi.js";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export default async function sendAtlas(request, response) {
   if (!assertMethod(request, response, "POST")) return;
   try {
-    requireAccess(request);
+    const apiKey = getNomiKey(request);
     const body = readBody(request);
     const nomiId = String(body.nomiId || "").trim();
     const messageText = String(body.messageText || "").trim();
@@ -26,7 +26,7 @@ export default async function sendAtlas(request, response) {
     sendJson(
       response,
       200,
-      await callNomi(`/nomis/${encodeURIComponent(nomiId)}/chat`, {
+      await callNomi(`/nomis/${encodeURIComponent(nomiId)}/chat`, apiKey, {
         method: "POST",
         body: JSON.stringify({ messageText }),
       }),

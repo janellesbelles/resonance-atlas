@@ -192,19 +192,22 @@
           <article class="panel nomi-panel" id="nomi-panel" hidden>
             <div class="share-heading">
               <div>
-                <p>Private Nomi bridge</p>
+                <p>Connect Nomi</p>
                 <span id="nomi-status" aria-live="polite">Checking connection...</span>
               </div>
-              <button id="refresh-nomis" type="button" class="secondary-button" hidden>Refresh Nomis</button>
+              <div class="nomi-actions">
+                <button id="refresh-nomis" type="button" class="secondary-button" hidden>Refresh Nomis</button>
+                <button id="disconnect-nomi" type="button" class="secondary-button" hidden>Disconnect</button>
+              </div>
             </div>
 
             <div class="nomi-unlock" id="nomi-unlock">
-              <label for="atlas-access-key">
-                <span>Atlas access code</span>
-                <input id="atlas-access-key" type="password" placeholder="Your private access code" autocomplete="current-password" />
+              <label for="nomi-api-key">
+                <span>Your Nomi account API key</span>
+                <input id="nomi-api-key" type="password" placeholder="Paste your own account key" autocomplete="off" maxlength="512" />
               </label>
-              <button id="unlock-nomi" type="button">Unlock</button>
-              <p class="panel-note">The access code protects your server-side Nomi key. It stays in this browser tab only.</p>
+              <button id="connect-nomi" type="button">Connect</button>
+              <p class="panel-note">Optional. Your key stays in this browser tab, is used only for your Nomi requests, and is never stored by Atlas.</p>
             </div>
 
             <div id="nomi-tools" hidden>

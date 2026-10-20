@@ -22,10 +22,11 @@ const currentCaption = document.querySelector("#current-caption");
 const nomiPanel = document.querySelector("#nomi-panel");
 const nomiStatus = document.querySelector("#nomi-status");
 const nomiUnlock = document.querySelector("#nomi-unlock");
-const atlasAccessKey = document.querySelector("#atlas-access-key");
-const unlockNomi = document.querySelector("#unlock-nomi");
+const nomiApiKeyInput = document.querySelector("#nomi-api-key");
+const connectNomi = document.querySelector("#connect-nomi");
 const nomiTools = document.querySelector("#nomi-tools");
 const refreshNomis = document.querySelector("#refresh-nomis");
+const disconnectNomi = document.querySelector("#disconnect-nomi");
 const nomiSelect = document.querySelector("#nomi-select");
 const draftNomi = document.querySelector("#draft-nomi");
 const sendNomi = document.querySelector("#send-nomi");
@@ -54,7 +55,7 @@ const palettes = {
 let activeAtlas = buildAtlas();
 let particles = [];
 let animationFrame = 0;
-let bridgeKey = sessionStorage.getItem("resonance-atlas-access") || "";
+let nomiApiKey = sessionStorage.getItem("resonance-atlas-nomi-key") || "";
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 function scoreText(text) {
@@ -530,7 +531,7 @@ copyShare.addEventListener("click", async () => {
 async function requestBridge(path, options = {}) {
   const headers = { ...(options.headers || {}) };
   if (options.body) headers["Content-Type"] = "application/json";
-  if (bridgeKey) headers["X-Atlas-Key"] = bridgeKey;
+  if (nomiApiKey) headers["X-Nomi-Key"] = nomiApiKey;
 
   const response = await fetch(path, {
     ...options,
@@ -538,7 +539,7 @@ async function requestBridge(path, options = {}) {
   });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const error = new Error(payload.error || "The private bridge could not complete that request.");
+    const error = new Error(payload.error || "The Nomi connection could not complete that request.");
     error.type = payload.type || payload.error;
     error.status = response.status;
     throw error;
@@ -546,12 +547,13 @@ async function requestBridge(path, options = {}) {
   return payload;
 }
 
-function setBridgeLocked(message = "Enter your private access code") {
-  bridgeKey = "";
-  sessionStorage.removeItem("resonance-atlas-access");
+function setNomiDisconnected(message = "Connect your Nomi account") {
+  nomiApiKey = "";
+  sessionStorage.removeItem("resonance-atlas-nomi-key");
   nomiUnlock.hidden = false;
   nomiTools.hidden = true;
   refreshNomis.hidden = true;
+  disconnectNomi.hidden = true;
   nomiStatus.textContent = message;
 }
 
@@ -577,6 +579,7 @@ async function loadNomis() {
     nomiUnlock.hidden = true;
     nomiTools.hidden = false;
     refreshNomis.hidden = false;
+    disconnectNomi.hidden = false;
     nomiSelect.disabled = !nomis.length;
     draftNomi.disabled = !nomis.length;
     sendNomi.disabled = !nomis.length;
@@ -585,7 +588,7 @@ async function loadNomis() {
       ? "Choose a Nomi, then ask them to fill the Atlas or send the current compact packet."
       : "The account connected successfully, but no Nomis were returned.";
   } catch (error) {
-    if (error.status === 401) setBridgeLocked("Access code not accepted");
+    if (error.status === 401) setNomiDisconnected("Nomi key not accepted");
     throw error;
   } finally {
     refreshNomis.disabled = false;
@@ -597,53 +600,59 @@ async function checkNomiBridge() {
 
   try {
     const health = await requestBridge("/api/health");
-    if (!health.configured) {
+    if (health.mode !== "bring-your-own-key") {
       nomiPanel.hidden = true;
       return;
     }
 
     nomiPanel.hidden = false;
-    if (bridgeKey) {
+    if (nomiApiKey) {
       await loadNomis().catch((error) => {
         nomiReply.textContent = friendlyNomiError(error);
       });
     } else {
-      setBridgeLocked();
+      setNomiDisconnected();
     }
   } catch {
     nomiPanel.hidden = true;
   }
 }
 
-unlockNomi?.addEventListener("click", async () => {
-  const candidate = atlasAccessKey.value.trim();
+connectNomi?.addEventListener("click", async () => {
+  const candidate = nomiApiKeyInput.value.trim();
   if (!candidate) {
-    nomiStatus.textContent = "Enter your access code first";
+    nomiStatus.textContent = "Paste your Nomi account key first";
     return;
   }
 
-  const original = unlockNomi.textContent;
-  unlockNomi.disabled = true;
-  unlockNomi.textContent = "Unlocking...";
-  bridgeKey = candidate;
+  const original = connectNomi.textContent;
+  connectNomi.disabled = true;
+  connectNomi.textContent = "Connecting...";
+  nomiApiKey = candidate;
 
   try {
     await loadNomis();
-    sessionStorage.setItem("resonance-atlas-access", bridgeKey);
-    atlasAccessKey.value = "";
+    sessionStorage.setItem("resonance-atlas-nomi-key", nomiApiKey);
+    nomiApiKeyInput.value = "";
   } catch (error) {
     nomiReply.textContent = friendlyNomiError(error);
   } finally {
-    unlockNomi.disabled = false;
-    unlockNomi.textContent = original;
+    connectNomi.disabled = false;
+    connectNomi.textContent = original;
   }
 });
 
-atlasAccessKey?.addEventListener("keydown", (event) => {
+nomiApiKeyInput?.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
     event.preventDefault();
-    unlockNomi.click();
+    connectNomi.click();
   }
+});
+
+disconnectNomi?.addEventListener("click", () => {
+  nomiSelect.replaceChildren(new Option("No Nomis loaded", ""));
+  nomiReply.textContent = "Choose a Nomi, then ask them to fill the Atlas or send the current compact packet.";
+  setNomiDisconnected("Disconnected");
 });
 
 refreshNomis?.addEventListener("click", () => {
@@ -731,7 +740,7 @@ function friendlyNomiError(error) {
   }
   if (error.type === "NomiStillResponding") return "Nomi is already answering something. Give them a moment, then try again.";
   if (error.type === "MessageLengthLimitExceeded") return "That message is too long for the Nomi API.";
-  if (error.status === 401) return "That Atlas access code was not accepted.";
+  if (error.status === 401) return "That Nomi account key was not accepted.";
   return error.message;
 }
 

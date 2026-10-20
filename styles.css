@@ -472,6 +472,13 @@ canvas {
   margin-bottom: 0.9rem;
 }
 
+.nomi-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.55rem;
+}
+
 .nomi-controls button,
 .nomi-unlock button {
   min-width: 10rem;
