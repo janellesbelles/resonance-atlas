@@ -40,7 +40,7 @@ Atlas uses a bring-your-own-key connection:
 - Disconnecting or closing the tab forgets the key.
 - No account key or shared access password is configured in Vercel.
 
-The Nomi API can return `NoReply` before a slow companion finishes responding. If that happens, copy the eventual JSON reply from the Nomi app into **Nomi answered late?** and Atlas can still fill the form.
+Atlas allows up to 120 seconds for the server function and waits up to 115 seconds for Nomi, leaving a small response buffer. The Nomi API can still return `NoReply` before a slow companion finishes responding. If that happens, copy the eventual JSON reply from the Nomi app into **Nomi answered late?** and Atlas can still fill the form.
 
 ## Notes
 
