@@ -920,17 +920,17 @@ function downloadAtlasImage() {
   entries.forEach(([key, value], index) => {
     const rowY = 735 + index * 43;
     exportCtx.fillStyle = "#f5f1e8";
-    exportCtx.font = "700 22px Inter, Arial, sans-serif";
+    exportCtx.font = "700 19px Inter, Arial, sans-serif";
     exportCtx.fillText(key, 790, rowY);
     exportCtx.fillStyle = "rgba(245, 241, 232, 0.12)";
-    roundedRect(exportCtx, 910, rowY - 17, 150, 12, 6);
+    roundedRect(exportCtx, 930, rowY - 17, 130, 12, 6);
     exportCtx.fill();
-    const meterGradient = exportCtx.createLinearGradient(910, 0, 1060, 0);
+    const meterGradient = exportCtx.createLinearGradient(930, 0, 1060, 0);
     meterGradient.addColorStop(0, "#2fd2c4");
     meterGradient.addColorStop(0.55, "#f4bd4f");
     meterGradient.addColorStop(1, "#df445d");
     exportCtx.fillStyle = meterGradient;
-    roundedRect(exportCtx, 910, rowY - 17, 15 * value, 12, 6);
+    roundedRect(exportCtx, 930, rowY - 17, 13 * value, 12, 6);
     exportCtx.fill();
     exportCtx.fillStyle = "#f5f1e8";
     exportCtx.font = "800 18px Inter, Arial, sans-serif";

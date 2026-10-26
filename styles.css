@@ -610,6 +610,10 @@ body.share-view .composer {
   display: none;
 }
 
+body.share-view .nomi-panel {
+  display: none;
+}
+
 body.share-view .experience {
   min-height: 100vh;
   grid-template-rows: minmax(24rem, 56vh) auto;
